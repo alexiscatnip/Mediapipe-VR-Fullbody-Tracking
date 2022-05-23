@@ -1,49 +1,19 @@
 import tkinter as tk
-from tkinter import ttk
 import numpy as np
 from scipy.spatial.transform import Rotation as R
-import helpers
+
+from bin.view.tk_helpers import put_separator
 
 use_steamvr = True
 
 class InferenceWindow(tk.Frame):
-    def __init__(self, root, params, *args, **kwargs):
+    def __init__(self, root, model, *args, **kwargs):
         tk.Frame.__init__(self, root, *args, **kwargs)
         
-        self.params = params
+        self.model = model
         self.root = root
 
-        # calibrate rotation
-        self.calib_rot_var = tk.BooleanVar(value=self.params.calib_rot)
-        self.calib_flip_var = tk.BooleanVar(value=self.params.flip)
-        self.rot_y_var = tk.DoubleVar(value=self.params.euler_rot_y)
-
-        frame1 = tk.Frame(self.root)
-        frame1.pack()
-        self.calibrate_rotation_frame(frame1)
-
-        self.put_separator()
-
-        # calibrate tilt
-        self.calib_tilt_var = tk.BooleanVar(value=self.params.calib_tilt)
-        self.rot_x_var = tk.DoubleVar(value=self.params.euler_rot_x)
-        self.rot_z_var = tk.DoubleVar(value=self.params.euler_rot_z)
-
-        frame2 = tk.Frame(self.root)
-        frame2.pack()
-        self.calibrate_tilt_frame(frame2)
-
-        self.put_separator()
-
-        # calibrate scale
-        self.calib_scale_var = tk.BooleanVar(value=self.params.calib_scale)
-        self.scale_var = tk.DoubleVar(value=self.params.posescale)
-
-        frame3 = tk.Frame(self.root)
-        frame3.pack()
-        self.calibrate_scale_frame(frame3)
-
-        self.put_separator()
+        put_separator(self.root)
 
         # recalibrate
         tk.Button(self.root, text='Recalibrate (automatically recalibrates checked values above)', 
@@ -54,50 +24,13 @@ class InferenceWindow(tk.Frame):
                     command=self.pause_tracking).pack()
                   
         
-        # show the Profile 1 profile 2 text:
-        if params.advanced:
-            frame_profile = tk.Frame(self.root)
-            frame_profile.pack()
-            tk.Label(frame_profile, text=" ", width = 20).pack(side='left')
-            tk.Label(frame_profile, text="Profile 1", width = 10).pack(side='left')
-            tk.Label(frame_profile, text=" ", width = 5).pack(side='left')
-            tk.Label(frame_profile, text="Profile 2", width = 10).pack(side='left')
-            tk.Label(frame_profile, text=" ", width = 5).pack(side='left')
-            tk.Label(frame_profile, text=" ", width = 5).pack(side='left')
-
-        # smoothing
-        frame4 = tk.Frame(self.root)
-        frame4.pack()
-        self.change_smooothing_frame(frame4)
-
-        # smoothing
-        frame4_2 = tk.Frame(self.root)
-        frame4_2.pack()
-        self.change_add_smoothing_frame(frame4_2)
-
-        # smoothing
-        frame4_1 = tk.Frame(self.root)
-        frame4_1.pack()
-        self.change_cam_lat_frame(frame4_1)
-
-        # rotate image 
-        frame5 = tk.Frame(self.root)
-        frame5.pack()
-        self.change_image_rotation_frame(frame5)
-        
-        # neck offset
-        if params.advanced:
-            frame6 = tk.Frame(self.root)
-            frame6.pack()
-            self.change_neck_offset_frame(frame6)
-        
         #frametime log
-        self.log_frametime_var = tk.BooleanVar(value=self.params.log_frametime)
-        log_frametime_check = tk.Checkbutton(self.root, text="Log frametimes to console", variable=self.log_frametime_var, command=self.change_log_frametime)
-        log_frametime_check.pack()
+        # self.log_frametime_var = tk.BooleanVar(value=self.params.log_frametime)
+        # log_frametime_check = tk.Checkbutton(self.root, text="Log frametimes to console", variable=self.log_frametime_var, command=self.change_log_frametime)
+        # log_frametime_check.pack()
 
         # exit
-        tk.Button(self.root, text='Press to exit', command=self.params.ready2exit).pack()
+        tk.Button(self.root, text='Press to exit', command=self.model.exit).pack()
 
         #self.root.after(0, self.set_rot_y_var)
         #self.root.after(0, self.set_rot_x_var)
@@ -397,18 +330,13 @@ class InferenceWindow(tk.Frame):
 
         self.params.recalibrate = False
 
-
-    def put_separator(self): 
-        separator = ttk.Separator(self.root, orient='horizontal')
-        separator.pack(fill='x')
-        
     def pause_tracking(self):
         self.params.paused = not self.params.paused
 
 
-def make_inference_gui(_params):
+def windowOpen(model):
     root = tk.Tk()
-    InferenceWindow(root, _params).pack(side="top", fill="both", expand=True)
+    InferenceWindow(root, model).pack(side="top", fill="both", expand=True)
     root.mainloop()
 
 if __name__ == "__main__":

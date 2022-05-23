@@ -1,46 +1,11 @@
 import tkinter as tk
 import pickle
 import cv2
+from bin.logic.parameters import getparams
 
-def getparams():
-    
-    try:
-        param = pickle.load(open("params.p","rb"))
-    except:
-        param = {}
-        
-    if "camid" not in param:
-        param["camid"] = 'http://192.168.1.103:8080/video'
-    if "imgsize" not in param:
-        param["imgsize"] = 800
-    if "neckoffset" not in param:
-        param["neckoffset"] = [0.0, -0.2, 0.1]
-    if "prevskel" not in param:
-        param["prevskel"] = False
-    if "waithmd" not in param:
-        param["waithmd"] = False
-    if "rotateclock" not in param:
-        param["rotateclock"] = False
-    if "rotatecclock" not in param: 
-        param["rotatecclock"] = False
-    if "rotate" not in param:
-        param["rotate"] = None
-    if "camlatency" not in param:
-        param["camlatency"] = 0.05;
-    if "smooth" not in param:
-        param["smooth"] = 0.5;
-    if "feetrot" not in param:
-        param["feetrot"] = False
-    if "calib_scale" not in param:
-        param["calib_scale"] = True
-    if "calib_tilt" not in param:
-        param["calib_tilt"] = True
-    if "calib_rot" not in param:
-        param["calib_rot"] = True
-    if "use_hands" not in param:
-        param["use_hands"] = False
-    if "ignore_hip" not in param:
-        param["ignore_hip"] = False
+
+def openInitSettingsWindow():
+    param = getparams()
 
     window = tk.Tk()
 
@@ -165,4 +130,4 @@ def getparams():
     return param
 
 if __name__ == "__main__":
-    print(getparams());
+    print(openInitSettingsWindow());
