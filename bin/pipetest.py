@@ -16,9 +16,9 @@ def sendToSteamVR(text):
     pipe.close()
     
     return array
-    
-sendToSteamVR("settings 5 2");
-assert 0
+#
+# sendToSteamVR("settings 5 2");
+# assert 0
 
 pipe = open(r'\\.\pipe\ApriltagPipeIn', 'rb+', buffering=0)
 
@@ -60,6 +60,7 @@ while True:
     array = sendToSteamVR("getdevicepose 0")
     
     if "error" in array:
+        print("error")
         continue
         
     hmdrot = [float(array[7]),float(array[8]),float(array[9]),float(array[6])]
@@ -67,8 +68,8 @@ while True:
     
     r = R.from_quat(hmdrot)
     
-    pos = r.apply([0,-0.2,-0.15]) + hmdpos
-    
+    pos = [0.69, 0.420, 0.69] # r.apply([0,-0.2,-0.15]) + hmdpos
+
     sendToSteamVR(f"updatepose {0} {pos[0]} {pos[1]} {pos[2]} 1 0 0 0 0 0.8")
     
     print(pos)
