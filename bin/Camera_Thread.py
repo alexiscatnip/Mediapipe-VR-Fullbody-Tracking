@@ -1,19 +1,18 @@
-import queue
+import threading
 import time
-
+from collections import deque
 import cv2
 
-class CameraThread:
-    def __init__(self, src, width, height, image_out_queue: queue):
+class CameraThread(threading.Thread):
+    def __init__(self, src, width: int, height: int, image_out_queue: deque):
+        threading.Thread.__init__(self)
 
-        # global cameraid #image_from_thread, image_ready
-        # self.cam_params = params[f"Camera_{cameraIdx}"]
-
-        # cameraid = int(self.cam_params["cameraid"])
-        self.cap = cv2.VideoCapture(src)
-        # if "camera_height" in self.cam_params:
-
-        # if "camera_width" in self.cam_params:
+        if len(src) <= 2:
+            #handle case of webcam referenced by its integer index
+            src = int(src)
+            self.cap = cv2.VideoCapture(src, cv2.CAP_DSHOW)
+        else :
+            raise NotImplementedError
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
         # self.isError = not cap.isOpened()
@@ -21,19 +20,22 @@ class CameraThread:
         #     print("Camera opened!")
         self.image_out_queue = image_out_queue
 
-    def start(self):
+        print("opened camera with width " + str(self.cap.get(3)) +
+              " height " + str(self.cap.get(4)))
+
+    def run(self):
         self.isError = not self.cap.isOpened()
-        if (self.isError):
+        if self.isError:
             print("camera cap failed to open.")
             return
         while True:
             ret, img = self.cap.read()
 
-            # image_ready = True
-
             assert ret, "Camera capture failed! Check the cameraid parameter."
-            if (ret):
-                self.image_out_queue.put(img)
+            #todo: time.sleep(.01) for assert failed case.
+            if ret:
+                self.image_out_queue.append(img)
+                time.sleep(.01)
 
     def set_src(self, src, width, height):
         if (self.cap is not None):

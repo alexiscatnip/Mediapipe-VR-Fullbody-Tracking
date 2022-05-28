@@ -1,45 +1,38 @@
 # model contains the parameters and the global variables and shared data.
+from collections import deque
 import sys
-import threading
-import queue
-from bin import cameraReader
-from bin.logic import parameters, steamVR_thread
+from bin.api.SynchronisedCameraCapture import SynchronisedCameraCapture
+from bin.logic import parameters, steamVR_thread, inference_thread, parameters_calibration
 
 
 class Model():
     def __init__(self, params: dict):
         self.params = params
+        self.inference_on = False
+        self.triangulation_on = False
+        self.steamVR_output_on = False
 
         # cameras
-        self.cameras_feeds = [] # images from the camera threads
-        self.camera_threads = [] # i keep track of the threads
-        self.camera_src = []
+        self.image_streams = [] # images from the camera threads
+        self.camera_src = [] # cameras's source path (as strings)
+        self.sync_camera_cap_thread = SynchronisedCameraCapture(
+            camera_sources = self.camera_src,
+            image_streams = self.image_streams
+        )
 
         #inference thread
+        self.pipe_3d_points = deque(maxlen=1)
+        self.steamVR_output_thread = inference_thread.InferenceAndTriangulationThread(
+            input = self.image_streams,
+            output = self.pipe_3d_points,
+            cgroup = parameters_calibration.load_calib()
+        )
 
         #output to steamvr
-        self.pipe_3d_points = queue
         self.steamVR_output_thread = steamVR_thread.SteamVRThread(
             self.pipe_3d_points
         )
 
-    # spin up a camera thread and let it write the image to the array
-    def add_a_camera_thread(self, src):
-        idx = len(self.camera_threads)
-        q = queue.Queue()
-
-        self.camera_src.append(src)
-        camera_thread_class = cameraReader.CameraThread(
-            src,
-            1920,
-            1080,
-            q
-        )
-        self.camera_threads.append(camera_thread_class)
-        self.cameras_feeds.append(q) #does this work?
-        print("appending camera" + str(len(self.cameras_feeds) -1))
-
-        camera_thread_class.start()      #start our thread, which starts camera capture
 
     # update the path to the camera resource.
     # idx = thread id
@@ -53,10 +46,7 @@ class Model():
         parameters.save_params(self.params)
 
         while len(self.cam_thread) < count:
-            self.add_a_camera_thread("")
-
-    def getCameraCount(self):
-        return self.params["camera_count"]
+            add_a_camera_thread(self.camera_threads, self.camera_src, self.cameras_feeds, "")
 
     #idx : index of camera in the camera array.
     def get_camera_image(self, idx):

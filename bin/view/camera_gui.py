@@ -1,6 +1,8 @@
 import numpy as np
 import tkinter as tk
 from tkinter import ttk
+
+from bin.api.SynchronisedCameraCapture import getCameraCount
 from bin.logic import parameters
 from PIL import Image
 from PIL import ImageTk
@@ -20,7 +22,7 @@ class CameraWindow(tk.Frame):
         tk.Label(self.root, text="Here you can set up and view your camera feed:").pack(side='top')
         self.put_separator()
         tk.Label(self.root, text="Total number of cameras: ").pack(side='top')
-        self.camera_count = tk.IntVar(root, model.getCameraCount())
+        self.camera_count = tk.IntVar(root, getCameraCount(model.params))
         self.cam_count_field = tk.Entry(self.root, width=50, textvariable=self.camera_count)
         self.cam_count_field.pack(side='top')
         tk.Button(self.root, text="Set number of cameras", command=self.set_camera_count).pack()
@@ -53,7 +55,7 @@ class CameraWindow(tk.Frame):
             print("not adding the camera as it is null stirng")
             pass
         else:
-            model.add_a_camera_thread(model.params[camera_index])
+            add_a_camera_thread(model.camera_threads, model.camera_src, model.cameras_feeds, model.params[camera_index])
 
         #create panel for show_frames
         self.image_label = tk.Label(self.root)
@@ -108,11 +110,6 @@ class CameraWindow(tk.Frame):
     def put_separator(self): 
         separator = ttk.Separator(self.root, orient='horizontal')
         separator.pack(fill='x')
-
-# this one does nto work... not sure why. Just not responsive but no frozen
-    # def reset(self):
-    #     self.root.destroy()
-    #     self.__init__(self.root,self.model)
 
     def set_camera(self):
         #read the fields and set in the model.

@@ -1,10 +1,9 @@
 # test if triangulation on the calibrated cameras yield an acceptable reprojection error
 import numpy as np
-from aniposelib.boards import CharucoBoard, Checkerboard
-from aniposelib.cameras import Camera, CameraGroup
+from aniposelib.cameras import CameraGroup
 from aniposelib.utils import load_pose2d_fnames
 
-from bin.AniposeLibWrapper import define_board_parameters
+from bin.api.AniposeLibWrapper import define_board_parameters
 
 if __name__ == "__main__":
 
