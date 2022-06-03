@@ -12,7 +12,7 @@ import cv2
 
 def run():
     try:
-        cap = open_camera__windows()
+        cap = open_camera__windows("2")
 
         time.sleep(0.4)
 

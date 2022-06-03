@@ -1,37 +1,44 @@
-# code routines, where we take a video from camer images with the frames synced up.
-# for the purpose of intrinsic and extrinsic calibration.
+"""
+test :
+    1. we can open up the SynchronisedCameras,
+    2. take the images,
+    3. and finally write them to .avi files.
+"""
 import time
-
 from bin.api.SynchronisedCameraCapture import SynchronisedCameraCapture
 import cv2
 
-# 1. spins up the cameras.
-# 2. extracts the latest frames from the cameras at a fixed HZ
-# 3. save the final frames into videos - one file for each camera
-
-
-def synchronised_camera_capture_to_files(camera_count, calibration_period=0.1):
+def synchronised_camera_capture_to_files(calibration_hz: int):
     """
-    :param camera_count: duh.
-    :param calibration_period: time between each synchronised capture.
-            It is long by default, because the calibration takes a long time to process many frames.
+    :param calibration_hz: the rate at which to pull the images from the cameras.
+                            I set it to half of camera FPS.
     :return:
     """
 
-    #spin up cameras.
+    # spin up cameras.
     camera_images = []
     caps = SynchronisedCameraCapture([], camera_images)
-    print("spinning up camera...")
+    print("spinning up camera 0...")
     caps.add_camera("0")
-    print("spinning up camera...")
+    print("spinning up camera 1...")
     caps.add_camera("1")
-    print("spinning up camera...")
+    print("spinning up camera 2...")
     caps.add_camera("2")
+
+    time.sleep(2)  # wait 2 seconds for cameras to turn on.
+
+    camera_up = caps.get_camera_up(0) and \
+                caps.get_camera_up(1) and \
+                caps.get_camera_up(2)
+    if not camera_up:
+        print("failed to open one of the cameras")
+        return -1
+
     print("spun up cameras :)")
 
-    assert(len(camera_images) == 3)
+    assert len(camera_images) == 3, "there should be 3 camera image streams"
 
-    fmt = cv2.VideoWriter_fourcc('M','J','P','G')
+    fmt = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
     frame_width = 1920
     frame_height = 1080
     frame_size = (frame_width, frame_height)
@@ -47,27 +54,26 @@ def synchronised_camera_capture_to_files(camera_count, calibration_period=0.1):
                                     fmt,
                                     1,
                                     frame_size)
-
-    while True:
-        # extract frame.
-        try:
+    calibration_period = 1 / calibration_hz
+    try:
+        while True:
+            # extract frame.
             images = caps.get_images_copy()
-        except IndexError:
-            continue
 
-        # save frame to video.
-        video_writer1.write(images[0])
-        video_writer2.write(images[1])
-        video_writer3.write(images[2])
+            # if all cameras give image, then save them.
+            # otherwise, don't save any image for this frame.
+            if all(image is not None for image in images):
+                video_writer1.write(images[0])
+                video_writer2.write(images[1])
+                video_writer3.write(images[2])
+                print("written 1 frame to file.")
+            time.sleep(calibration_period)
 
-        print("written 1 frame to file.")
-
-        time.sleep(calibration_period)
-
+    except KeyboardInterrupt:
+        print("stopped by ctrl-c")
+        caps.close()
+        return 0
 
 
 if __name__ == "__main__":
-    try:
-        synchronised_camera_capture_to_files(3)
-    except:
-        pass
+    synchronised_camera_capture_to_files(15)
