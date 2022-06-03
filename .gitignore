@@ -1,1 +1,6 @@
 env\*
+*.avi
+*.toml
+**.idea/**
+*.h5
+*.mov
