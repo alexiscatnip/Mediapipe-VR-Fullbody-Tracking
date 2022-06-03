@@ -4,27 +4,15 @@
 import time
 import os
 
+from bin.logic.opencv_webcam import open_camera__windows
+
 os.environ["OPENCV_VIDEOIO_MSMF_ENABLE_HW_TRANSFORMS"] = "0"
 import cv2
 
 
 def run():
     try:
-        # cap = cv2.VideoCapture(0)
-        cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-
-        # we set fourcc twice, since the earlier one might not take effect.
-        fourcc = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
-        cap.set(cv2.CAP_PROP_FOURCC, fourcc)
-
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 10000)
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 10000)
-        # cap.set(cv2.CAP_PROP_EXPOSURE, 5)
-        cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0)
-
-        # we set fourcc at the end again.
-        fourcc = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
-        cap.set(cv2.CAP_PROP_FOURCC, fourcc)
+        cap = open_camera__windows()
 
         time.sleep(0.4)
 
